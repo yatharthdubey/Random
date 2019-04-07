@@ -1,0 +1,500 @@
+
+
+
+URI Controller:
+CLIENT SIDE
+
+private Product tempProduct;
+
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
+	}
+
+	@Autowired
+	private HttpSession session;
+
+	@Autowired
+	private HttpServletRequest request;
+
+	@Autowired
+	RestTemplate rest;
+
+@RequestMapping(value = "/")
+	public String getResponse(ModelMap map) {
+		// request.getSession().invalidate();
+		session = request.getSession(false);
+		User user = new User();
+		user = (User) session.getAttribute("user");
+		if (session != null && user != null) {
+			/*
+			 * session = request.getSession(); User user =
+			 * (User)session.getAttribute("user"); System.out.println(user.toString());
+			 */if (user.getRole().equalsIgnoreCase("customer")) {
+				return "Home";
+			} else if (user.getRole().equalsIgnoreCase("merchant")) {
+				return "MerchantHome";
+			} else {
+				return "Admin";
+			}
+		}
+		return "Home";
+
+	}
+@RequestMapping(value = "/Login")
+	public String getSignUp() {
+//		if (!(request.getSession(false) == null)) {
+//			User user = (User)request.getSession().getAttribute("user");
+//			String merchantEmail = user.getEmailId();
+//			if(user.getRole().equalsIgnoreCase("customer")) {
+//				return "Home";
+//			}
+//			else if(user.getRole().equalsIgnoreCase("merchant")) {
+//				return "MerchantHome";
+//			}
+//			else {
+//				return "Admin";
+//			}
+//		}
+		// "yanshu@gupta.com";
+		return "Login";
+	}
+
+	@RequestMapping(value = "/login", method = RequestMethod.POST, produces = "application/json")
+	public String enterSignUpDetails() {
+		// if
+		/* (!(request.getSession(false) == null)) */ {
+			// User user =
+		}
+		// (User)request.getSession().getAttribute("user"); //
+		// if(user.getRole().equalsIgnoreCase("customer")) { // return "Home"; // } //
+		// else if(user.getRole().equalsIgnoreCase("merchant")) { // return
+		// "MerchantHome"; // } // else { // return "Admin"; // } // }
+		User user = new User();
+		String email = request.getParameter("email");
+		user.setEmailId(email);
+		String password = request.getParameter("password");
+		user.setPassword(password);
+		String role = request.getParameter("a3");
+		System.out.println(user.getEmailId() + user.getPassword());
+		user.setRole(role);
+		session = request.getSession(true);
+		session.setAttribute("user", user);
+		String str = rest.postForObject("http://localhost:8092/logIn", user, String.class);
+		return str;
+	}
+
+	@RequestMapping(value = "/Ask")
+	public String getSignUpDetails() {
+
+		return "Ask";
+	}
+
+	@RequestMapping(value = "/ForgotPassword")
+	public String forgotPassword() {
+
+		return "ForgotPassword";
+	}
+
+	@RequestMapping(value = "/ForgotPasswordd", method = RequestMethod.POST, produces = "application/json")
+	public String afterForgotPassword() {
+
+		User user = new User();
+		String email = request.getParameter("n4");
+		String securityQuestion = request.getParameter("a4");
+		String securityAnswer = request.getParameter("n2");
+		user.setEmailId(email);
+		user.setSecurityAnswer(securityAnswer);
+		user.setSecurityQuestion(securityQuestion);
+		HttpSession session = request.getSession(true);
+		session.setAttribute("user", user);
+		String str = rest.postForObject("http://localhost:8092/forgotPassword", user, String.class);
+		return str;
+
+	}
+
+	@RequestMapping(value = "/Home", method = RequestMethod.POST, produces = "application/json")
+	public String successfullChagePassword() {
+
+		String password = request.getParameter("n3");
+		String confirmPassword = request.getParameter("n4");
+		HttpSession session = request.getSession();
+		User user = (User) session.getAttribute("user");
+		user.setPassword(password);
+
+		if (password.equals(confirmPassword)) {
+
+			String str = rest.postForObject("http://localhost:8092/passwordChangePage", user, String.class);
+			return str;
+
+		}
+
+		return "ForgotPasswordConfirmation";
+	}
+
+	@RequestMapping(value = "/SignUp", method = RequestMethod.POST, produces = "application/json")
+	public String validateSignUpDetails() {
+
+		User user = new User();
+		String email = request.getParameter("a1");
+		user.setEmailId(email);
+		String password = request.getParameter("a2");
+		user.setPassword(password);
+		String role = request.getParameter("a3");
+		user.setRole(role);
+		String securityQuestion = request.getParameter("a4");
+		user.setSecurityQuestion(securityQuestion);
+		String securityAnswer = request.getParameter("a5");
+		user.setSecurityAnswer(securityAnswer);
+		String str = rest.postForObject("http://localhost:8092/signUp", user, String.class);
+		if (str.equals("ask")) {
+			// set msg
+		}
+		return str;
+	}
+
+	@RequestMapping(value = "/Customer_OTP", method = RequestMethod.POST, produces = "application/json")
+	public String enterMoreSignUpDetailsCustomer() {
+
+		Customer customer = new Customer();
+		String name = request.getParameter("n2");
+		String email = request.getParameter("n5");
+		String mobileNo = request.getParameter("n4");
+		String address = request.getParameter("n8");
+		String pincode = request.getParameter("n6");
+		customer.setCustomerAddress(address);
+		customer.setCustomerEmail(email);
+		customer.setCustomerMobileNumber(mobileNo);
+		customer.setCustomerName(name);
+		customer.setCustomerPincode(pincode);
+		String str = rest.postForObject("http://localhost:8092/registerCustomer", customer, String.class);
+		return str;
+
+	}
+
+	@RequestMapping(value = "/Merchant_OTP", method = RequestMethod.POST, produces = "application/json")
+	public String enterMoreSignUpDetailsMerchant() {
+
+		Merchant merchant = new Merchant();
+		String name = request.getParameter("n1");
+		String email = request.getParameter("n2");
+		String storeName = request.getParameter("n3");
+		String mobileNo = request.getParameter("n4");
+		String address = request.getParameter("n5");
+		merchant.setMerchantAddress(address);
+		merchant.setMerchantEmail(email);
+		merchant.setMerchantMobileNumber(mobileNo);
+		merchant.setMerchantName(name);
+		merchant.setMerchantStoreName(storeName);
+		String str = rest.postForObject("http://localhost:8092/registerMerchant", merchant, String.class);
+		return str;
+	}
+
+	@RequestMapping(value = "/ChangePassword")
+	public String getChangePasswordPage() {
+		return "ChangePassword";
+	}
+
+	@RequestMapping("/logOut")
+	public String logOut() {
+
+		
+		session.invalidate();
+		return "Home";
+
+	}
+
+	@RequestMapping(value = "/changePassword", method = RequestMethod.POST)
+	public String changePasword() {
+
+		String str = null;
+		String currentPassword = request.getParameter("n2");
+		String newPassword = request.getParameter("n3");
+		String confirmNewPassword = request.getParameter("n4");
+		ChangePasswordDummy dummy = new ChangePasswordDummy();
+		HttpSession session = request.getSession(true);
+		User user = (User) session.getAttribute("user");
+		System.out.println(user);
+		dummy.setEmail(user.getEmailId());
+		dummy.setOldPassword(currentPassword);
+		dummy.setNewPassword(newPassword);
+		dummy.setRole(user.getRole());
+		System.out.println("hii");
+		if (newPassword.equals(confirmNewPassword)) {
+			str = rest.postForObject("http://localhost:8092/changePasswordd", dummy, String.class);
+		}
+		return str;
+	}
+
+
+---------------------------------------------------------------------------------------------------------------------------
+URI Controller:
+
+SERVER SIDE
+
+@Autowired
+	ICapStoreCommonService commonService;
+
+	@Autowired
+	ICapStoreAdminService adminService;
+
+	@Autowired
+	ICapStoreMerchantService merchantService;
+
+	@Autowired
+	ICapStoreCustomerService customerService;
+	
+	
+	
+	@RequestMapping("/")
+	public String abc()
+	{
+		return "kuch bhi";
+	}
+	
+	
+	@RequestMapping(value = "/logIn", method = RequestMethod.POST)
+	public String logIn(@RequestBody User user, HttpServletRequest request) {
+		
+		boolean result = false;
+		try {
+			
+			result = commonService.ValidateLogIn(user);
+			System.out.println("Result"+result);
+			if(result) {
+							
+				if (user.getRole().equals("ADMIN")) {
+					
+					return "Admin";
+					
+				}
+				if (user.getRole().equals("MERCHANT")) {
+									
+					return "MerchantHome";				
+									
+				}
+				if (user.getRole().equals("CUSTOMER")) {
+					
+					return "HomeCustomer";
+					
+				}
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// set error msg
+		return "Home";
+	}
+
+	@RequestMapping(value = "/logOut", method = RequestMethod.GET)
+	public String logOut(HttpServletRequest request) {
+		
+		request.getSession().invalidate();
+		return "indexPage";
+		
+	}
+
+	@RequestMapping(value = "/forgotPassword", method = RequestMethod.POST)
+	public String forgotPassword(@RequestBody User user, HttpServletRequest request) {
+		
+		User result = null;
+		
+		if ((result = commonService.isValidEmail(user.getEmailId())) != null) {
+			
+			if(user.getSecurityQuestion().equals(result.getSecurityQuestion()) && user.getSecurityAnswer().equals(result.getSecurityAnswer())) {
+				
+				return "ForgotPasswordConfirmation";
+				
+			}
+			
+		}
+		
+		return "ForgotPassword";
+	}
+
+	@RequestMapping(value = "/passwordChangePage", method = RequestMethod.POST)
+	public String passwordChangePage(@RequestBody User user, HttpServletRequest request) {
+		
+		commonService.updatePassword(user.getEmailId(), user.getPassword());
+		return "Home";
+		
+	}
+
+	@RequestMapping(value = "/changePasswordd", method = RequestMethod.POST)
+	public String changePassword(@RequestBody ChangePasswordDummy changePassword,	HttpServletRequest request) {
+		
+		if (commonService.changePassword(changePassword.getEmail(),changePassword.getOldPassword(),changePassword.getNewPassword())) {
+			if(changePassword.getRole().equals("CUSTOMER"))
+				return "HomeCustomer";
+			if(changePassword.getRole().equals("MERCHANT"))
+				return "MerchantHome";
+			if(changePassword.getRole().equals("ADMIN"))
+				return "Admin";
+		}
+		
+		return "changePassword";
+	}
+
+	@RequestMapping(value = "/signUp", method = RequestMethod.POST)
+	public String signUp(@Valid @RequestBody User user) {
+		
+		System.out.println(user);
+	
+		if (commonService.ValidateUserDetails(user)) {
+			if(user.getRole().equalsIgnoreCase("CUSTOMER"))
+				return "CustomerSignUp";
+			if(user.getRole().equalsIgnoreCase("MERCHANT"))
+				return "MerchantSignUp";
+		}
+			// set error msg details are incorrect
+			return "ask";
+	}
+	
+	@RequestMapping(value = "/registerMerchant", method = RequestMethod.POST)
+	public String finalRegistrationForMerchant(@RequestBody Merchant merchant) {
+		merchant.setMerchantRating(1);
+		merchant.setProducts(new ArrayList<Product>());
+//		System.out.println(merchant);
+		merchantService.registerMerchant(merchant);
+		
+		return "Login";
+		
+	}
+
+	@RequestMapping(value = "/registerCustomer", method = RequestMethod.POST)
+	public String finalRegistrationForCustomer(@RequestBody Customer customer) {
+		System.out.println(customer);
+		merchantService.registerCustomer(customer);
+		
+		return "Login";
+		
+	}
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Common Service Interface:
+Server side:
+
+
+
+
+	boolean ValidateLogIn(@Valid User user);
+
+	User isValidEmail(String email);
+
+	boolean checkSequirityAnswer(String attribute, String securityAnswer);
+
+	void updatePassword(String email, String password);
+
+	boolean changePassword(String attribute, String oldPassword, String newPassword);
+
+	boolean ValidateUserDetails(@Valid User user);
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+Common Service:
+Server side
+
+@Autowired
+	CapStoreUser userRepo;
+
+	@Override
+	public boolean ValidateLogIn(@Valid User user) {
+		
+		User result = null;
+		MD5 encryption = new MD5();
+		try {
+			result = userRepo.findById(user.getEmailId()).get();
+//			 System.out.println(result.getEmailId()+" "+result.getPassword());
+		} catch (Exception e) {
+
+			e.printStackTrace();
+		}
+		if (result != null) {
+			user.setPassword(encryption.encryptText(user.getPassword()));
+			if (result.equals(user)) {
+				return true;
+			}
+			return false;
+		}
+		return false;	}
+
+	@Override
+	public User isValidEmail(String email) {
+		try {
+			User user = userRepo.findById(email).get();
+			return user;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
+	public boolean checkSequirityAnswer(String email, String sequirityAnswer) {
+		try {
+			User user = userRepo.findById(email).get();
+			if (user.getSecurityAnswer().equalsIgnoreCase(sequirityAnswer)) {
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Override
+	public void updatePassword(String email, String password) {
+		MD5 encryption = new MD5();
+		password = encryption.encryptText(password);
+		try {
+			User user = userRepo.findById(email).get();
+			user.setPassword(password);
+			userRepo.save(user);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public boolean changePassword(String email, String oldPassword, String newPassword) {
+		MD5 encryption = new MD5();
+		oldPassword = encryption.encryptText(oldPassword);
+		newPassword = encryption.encryptText(newPassword);
+		try {
+			User user = userRepo.findById(email).get();
+			if (user.getPassword().equals(oldPassword)) {
+				user.setPassword(newPassword);
+				userRepo.save(user);
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	@Override
+	public boolean ValidateUserDetails(@Valid User user) {
+		MD5 encryption = new MD5();
+		user.setPassword(encryption.encryptText(user.getPassword()));
+		Optional<User> result = userRepo.findById(user.getEmailId());
+		if (result.isPresent()) {
+			return false;
+		}
+		userRepo.save(user);
+		return true;
+	}
+
+
+	
+
+
+
